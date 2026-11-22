@@ -121,6 +121,30 @@ describe('#Sunrise', function () {
     })
   })
 
+  describe('near the date line', function () {
+    // local noon is before 00:00 UTC, so the noon offset of the day is negative
+    const sr = new Sunrise(
+      new julian.Calendar(new Date('2026-11-03T00:00:00Z')),
+      -17,
+      -179.9
+    )
+
+    it('noon lies between rise and set', function () {
+      assert.strictEqual(
+        sr.rise().toDate().toISOString(),
+        '2026-11-02T17:21:36.883Z'
+      )
+      assert.strictEqual(
+        sr.noon().toDate().toISOString(),
+        '2026-11-02T23:43:54.616Z'
+      )
+      assert.strictEqual(
+        sr.set().toDate().toISOString(),
+        '2026-11-03T06:06:25.719Z'
+      )
+    })
+  })
+
   describe('in southern polar day', function () {
     const date = new Date('2015-12-21T00:00:00Z')
     const lat = -77.8460468

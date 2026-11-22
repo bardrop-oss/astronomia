@@ -9,7 +9,6 @@
 
 /* eslint key-spacing: 0 */
 
-import base from './base.js'
 import eqtime from './eqtime.js'
 import sexa from './sexagesimal.js'
 import solar from './solar.js'
@@ -67,7 +66,7 @@ export class Sunrise {
     const etime = sexa.secFromHourAngle(eqtime.eSmart(jde))
     const delta = sexa.secFromHourAngle(this.lon)
     const time = 43200 /* noon */ + delta - etime // in seconds
-    return base.pmod(time / 86400, 86400)
+    return time / 86400
   }
 
   /**
