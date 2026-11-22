@@ -86,8 +86,9 @@ export class Angle {
    * @returns {String}
    */
   toString(precision) {
-    const [neg, d, m, s] = this.toDMS()
-    const seconds = round(s, precision).toString().replace(/^0\./, '.')
+    const [neg, d0, m0, s0] = this.toDMS()
+    const [d, m, s] = carry(d0, m0, round(s0, precision))
+    const seconds = s.toString().replace(/^0\./, '.')
     const str = (neg ? '-' : '') + (d + '°') + (m + '′') + (seconds + '″')
     return str
   }
@@ -157,8 +158,9 @@ export class HourAngle extends Angle {
    * @returns {String}
    */
   toString(precision) {
-    const [neg, h, m, s] = this.toDMS()
-    const seconds = round(s, precision).toString().replace(/^0\./, '.')
+    const [neg, h0, m0, s0] = this.toDMS()
+    const [h, m, s] = carry(h0, m0, round(s0, precision))
+    const seconds = s.toString().replace(/^0\./, '.')
     const str = (neg ? '-' : '') + (h + 'ʰ') + (m + 'ᵐ') + (seconds + 'ˢ')
     return str
   }
@@ -192,7 +194,7 @@ export function degToDMS(deg) {
   let [d, s] = modf(deg % 360)
   const [m, s1] = modf(s * 60)
   s = round(s1 * 60) // may introduce an error < 1e13
-  return [neg, d, m, s]
+  return [neg, ...carry(d, m, s)]
 }
 
 export class RA extends HourAngle {
@@ -317,14 +319,10 @@ export class Time {
    * @returns {String}
    */
   toString(precision) {
-    const [neg, h, m, s] = this.toHMS()
+    const [neg, h0, m0, s0] = this.toHMS()
+    const [h, m, s] = carry(h0, m0, round(s0, precision))
     let [si, sf] = modf(s)
-    if (precision === 0) {
-      si = round(s, 0)
-      sf = 0
-    } else {
-      sf = round(sf, precision).toString().substr(1)
-    }
+    sf = round(sf, precision).toString().substr(1)
     const str =
       (neg ? '-' : '') + (h + 'ʰ') + (m + 'ᵐ') + (si + 'ˢ') + (sf || '')
     return str
@@ -357,6 +355,27 @@ function modf(float) {
   const i = Math.trunc(float)
   const f = Math.abs(float - i)
   return [i, f]
+}
+
+/**
+ * carries seconds that were rounded up to 60 into minutes and minutes into
+ * the leading unit, e.g. `[10, 59, 60]` becomes `[11, 0, 0]`
+ * @private
+ * @param {Number} a - (int) degrees or hours
+ * @param {Number} m - (int) minutes
+ * @param {Number} s - (float) seconds
+ * @returns {[number, number, number]}
+ */
+function carry(a, m, s) {
+  if (s >= 60) {
+    s -= 60
+    m++
+  }
+  if (m >= 60) {
+    m -= 60
+    a++
+  }
+  return [a, m, s]
 }
 
 /**

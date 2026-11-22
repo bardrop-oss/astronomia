@@ -13,6 +13,15 @@ describe('#sexagesimal', function () {
       const res = sexa.degToDMS(-23.446944444444444)
       assert.deepStrictEqual(res, [true, 23, 26, 49])
     })
+    it('DegToDMS carries seconds rounded up to 60', function () {
+      assert.deepStrictEqual(sexa.degToDMS(10.99999999999999), [
+        false,
+        11,
+        0,
+        0
+      ])
+      assert.deepStrictEqual(sexa.degToDMS(-0.99999999999999), [true, 1, 0, 0])
+    })
   })
 
   describe('Angle', function () {
@@ -43,6 +52,16 @@ describe('#sexagesimal', function () {
       const res = new sexa.Angle(false, 0, 0, 47.34)
       assert.strictEqual(res.deg(), 0.01315)
       assert.strictEqual(res.toString(), '0°0′47.34″')
+    })
+
+    it('toString carries seconds rounded up to 60', function () {
+      const res = new sexa.Angle(false, 10, 59, 59.996)
+      assert.strictEqual(res.toString(2), '11°0′0″')
+      assert.strictEqual(res.toString(3), '10°59′59.996″')
+      assert.strictEqual(
+        new sexa.Angle(true, 0, 59, 59.6).toString(0),
+        '-1°0′0″'
+      )
     })
 
     it('new Angle with one argument', function () {
@@ -94,6 +113,10 @@ describe('#sexagesimal', function () {
     it('toDMS', function () {
       assert.deepStrictEqual(ra.toDMS(), [false, 9, 14, 55.8])
     })
+    it('toString carries seconds rounded up to 60', function () {
+      assert.strictEqual(new sexa.RA(9, 14, 59.8).toString(0), '9ʰ15ᵐ0ˢ')
+      assert.strictEqual(new sexa.RA(9, 59, 59.996).toString(2), '10ʰ0ᵐ0ˢ')
+    })
   })
 
   describe('Time', function () {
@@ -125,6 +148,24 @@ describe('#sexagesimal', function () {
     it('day', function () {
       const res = t.day()
       assert.strictEqual(res, 0.6403587962962963)
+    })
+    it('toString carries seconds rounded up to 60', function () {
+      assert.strictEqual(
+        new sexa.Time(false, 15, 22, 59.6).toString(0),
+        '15ʰ23ᵐ0ˢ'
+      )
+      assert.strictEqual(
+        new sexa.Time(false, 10, 59, 59.996).toString(2),
+        '11ʰ0ᵐ0ˢ'
+      )
+      assert.strictEqual(
+        new sexa.Time(false, 10, 59, 59.996).toString(3),
+        '10ʰ59ᵐ59ˢ.996'
+      )
+      assert.strictEqual(
+        new sexa.Time(false, 10, 0, 7.996).toString(2),
+        '10ʰ0ᵐ8ˢ'
+      )
     })
     it('toString negative', function () {
       const t = new sexa.Time(true, 0, 61, 61)
